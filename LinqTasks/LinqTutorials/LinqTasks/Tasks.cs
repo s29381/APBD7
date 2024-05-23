@@ -71,7 +71,7 @@ public static partial class Tasks
     /// </summary>
     public static IEnumerable<object> Task7()
     {
-        return 
+        return Emps.GroupBy(emp => emp.Job).Select(e => new {Praca = e.Key, LiczbaPracownikow = e.Count()});
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public static partial class Tasks
     /// </summary>
     public static bool Task8()
     { 
-        return false;
+        return Emps.Any(e => e.Job == "Backend programmer");
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public static partial class Tasks
     /// </summary>
     public static Emp Task9()
     {
-        return null;
+        return Emps.Where(e => e.Job == "Frontend programmer").OrderByDescending(e => e.HireDate).First();
     }
 
     /// <summary>
@@ -99,7 +99,8 @@ public static partial class Tasks
     /// </summary>
     public static IEnumerable<object> Task10()
     {
-        return null;
+        return Emps.Select(e => new {e.Ename, e.Job, e.HireDate})
+            .Union(new[] {new {Ename = "Brak wartości", Job = (string)null, HireDate = (DateTime?)null}});
     }
 
     /// <summary>
@@ -115,7 +116,10 @@ public static partial class Tasks
     /// </summary>
     public static IEnumerable<object> Task11()
     {
-        return null;
+        return Emps.Join(Depts, e => e.Deptno, d => d.Deptno, (e, d) => new {name = d.Dname, emp = e.Ename })
+            .GroupBy(x => x.name)
+            .Select(x => new {name = x.Key.ToUpper(), numOfEmployees = x.Count()})
+            .Where(x => x.numOfEmployees > 1);;
     }
 
     /// <summary>
@@ -126,9 +130,9 @@ public static partial class Tasks
     /// </summary>
     public static IEnumerable<Emp> Task12()
     {
-        IEnumerable<Emp> result = Emps.GetEmpsWithSubordinates();
-        
-        return result;
+        return Emps.Where(x => Emps.Any(e => e.Mgr?.Empno == x.Empno))
+            .OrderBy(e => e.Ename)
+            .ThenByDescending(e => e.Salary);;
     }
 
     /// <summary>
@@ -140,7 +144,12 @@ public static partial class Tasks
     /// </summary>
     public static int Task13(int[] arr)
     {
-        return -1;
+        return arr
+            .GroupBy(x => x)
+            .Select(x => new {liczba = x.Key, ilosc = x.Count()})
+            .Where(x => x.ilosc % 2 == 1)
+            .Select(x => x.liczba)
+            .First();
     }
 
     /// <summary>
@@ -149,6 +158,12 @@ public static partial class Tasks
     /// </summary>
     public static IEnumerable<Dept> Task14()
     {
-        return null;
+        return Depts
+            .Where(dept =>
+                Depts.GroupJoin(Emps, d => d.Deptno, e => e.Deptno, (d, group) => new {name = d.Dname, count = group.Count()})
+                    .Where(x => x.count == 0 || x.count == 5)
+                    .Select(x => x.name)
+                    .Contains(dept.Dname))
+            .OrderBy(d => d.Dname);
     }
 }
